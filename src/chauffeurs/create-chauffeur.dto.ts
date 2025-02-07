@@ -1,38 +1,43 @@
-import { IsString, IsUUID, IsOptional, IsEmail, IsDateString, IsBoolean, IsNumber, Min, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Length,
+  IsIn,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateChauffeurDto {
   @IsUUID()
-  auth_user_id: string; // Supabase Auth User ID
+  auth_user_id: string;
 
   @IsUUID()
   @IsOptional()
   company_id?: string;
 
-  // 🔹 Personal Details
   @IsString()
-  @MaxLength(255)
+  @Length(1, 255)
   first_name: string;
 
   @IsString()
-  @MaxLength(255)
+  @Length(1, 255)
   last_name: string;
 
   @IsEmail()
-  @MaxLength(255)
   email: string;
 
   @IsString()
-  @IsOptional()
-  @MaxLength(20)
-  phone?: string;
+  @Length(8, 20)
+  phone: string;
 
-  @IsDateString()
-  @IsOptional()
-  birth_date?: string;
+  @IsString()
+  @Transform(({ value }) => new Date(value)) // Converts string to Date
+  birth_date: Date;
 
   @IsString()
   @IsOptional()
-  @MaxLength(255)
   birth_place?: string;
 
   @IsString()
@@ -41,168 +46,143 @@ export class CreateChauffeurDto {
 
   @IsString()
   @IsOptional()
-  @MaxLength(100)
-  city?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(20)
-  postal_code?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
   country?: string;
 
   @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  nationality?: string;
+  @Length(1, 100)
+  national_id: string;
 
   @IsString()
   @IsOptional()
-  @MaxLength(50)
-  national_id?: string;
+  nationality?: string;
 
+  // ✅ File Uploads
   @IsString()
   @IsOptional()
   id_card?: string;
-
-  // 🔹 Family Details
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  marital_status?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  dependents?: number;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  dependent_spouse_name?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  dependent_spouse_profession?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(0)
-  number_of_kids?: number;
-
-  // 🔹 Education & Skills
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  education_level?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  language?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  driver_license_number?: string;
 
   @IsString()
   @IsOptional()
   driver_license_photo?: string;
 
-  // 🔹 Employment Details
   @IsString()
-  @MaxLength(50)
-  worker_number: string;
-
-  @IsDateString()
   @IsOptional()
-  start_date?: string;
-
-  @IsDateString()
-  @IsOptional()
-  end_date?: string;
+  bank_card_photo?: string;
 
   @IsString()
   @IsOptional()
-  @MaxLength(255)
-  profession?: string;
+  contract_photo?: string;
+
+  // ✅ Employment Information
+  @IsString()
+  @Transform(({ value }) => new Date(value)) // Converts string to Date
+  start_date: Date;
 
   @IsString()
   @IsOptional()
-  @MaxLength(50)
-  employment_status?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  work_permit_type?: string;
+  @Transform(({ value }) => (value ? new Date(value) : null)) // Converts only if value exists
+  end_date?: Date;
 
   @IsString()
   @IsOptional()
   extra_info?: string;
 
-  @IsNumber()
-  @IsOptional()
-  hourly_rate?: number;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  virtual_terminal_id?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  work_location?: string;
-
-  @IsString()
-  @IsOptional()
-  benefits_in_kind?: string;
-
-  // 🔹 Work Schedule
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  work_formula?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  work_days?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  period?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  free_day?: string;
-
-  // 🔹 Payment Preferences
+  // ✅ Workdays
   @IsBoolean()
   @IsOptional()
-  prefers_card_payment?: boolean;
+  works_monday?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  prefers_cash_payment?: boolean;
+  works_tuesday?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  prefers_check_payment?: boolean;
+  works_wednesday?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  prefers_invoice?: boolean;
+  works_thursday?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  prefers_heetch?: boolean;
+  works_friday?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  works_saturday?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  works_sunday?: boolean;
+
+  // ✅ Shift & Work Formula
+  @IsString()
+  @IsIn(['Day', 'Night', 'Long']) // Validate shift_type
+  shift_type: 'Day' | 'Night' | 'Long';
+
+  @IsString()
+  @IsIn(['50/50', 'Forfait']) // Validate work_formula
+  work_formula: '50/50' | 'Forfait';
+
+  // ✅ Payment Preferences
+  @IsBoolean()
+  @IsOptional()
+  accepts_card_payment?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_check_payment?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_cash_payment?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_bolt_app?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_bolt_cash?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_bolt_card?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_heetch_app?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_heetch_cash?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_heetch_card?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_uber_app?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_uber_cash?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_uber_card?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_taxi_vert_cash?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_taxi_vert_app?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  accepts_taxi_vert_card?: boolean;
 }

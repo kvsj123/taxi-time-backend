@@ -1,149 +1,146 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+
 
 @Entity('chauffeurs')
 export class Chauffeur {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', nullable: false })
-  auth_user_id: string; // Supabase Auth User ID
+  @Column({ type: 'uuid', unique: true })
+  auth_user_id: string;
 
   @Column({ type: 'uuid', nullable: true })
   company_id: string;
 
-  // Personal Details
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ length: 255 })
   first_name: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ length: 255 })
   last_name: string;
 
-  @Column({ type: 'varchar', length: 255, unique: true, nullable: false })
+  @Column({ length: 255, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ length: 20 })
   phone: string;
 
-  @Column({ type: 'date', nullable: true })
-  birth_date: string;
+  @Column({ type: 'date' })
+  birth_date: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ length: 255, nullable: true })
   birth_place: string;
 
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  city: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  postal_code: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ length: 100, nullable: true })
   country: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  nationality: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ length: 100, unique: true })
   national_id: string;
 
+  @Column({ length: 100, nullable: true })
+  nationality: string;
+
+  // ✅ File Uploads
   @Column({ type: 'text', nullable: true })
   id_card: string;
-
-  // Family Details
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  marital_status: string;
-
-  @Column({ type: 'integer', default: 0 })
-  dependents: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  dependent_spouse_name: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  dependent_spouse_profession: string;
-
-  @Column({ type: 'integer', default: 0 })
-  number_of_kids: number;
-
-  // Education & Skills
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  education_level: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  language: string;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  driver_license_number: string;
 
   @Column({ type: 'text', nullable: true })
   driver_license_photo: string;
 
-  // Employment Details
-  @Column({ type: 'varchar', length: 50, unique: true, nullable: false })
-  worker_number: string;
+  @Column({ type: 'text', nullable: true })
+  bank_card_photo: string;
+
+  @Column({ type: 'text', nullable: true })
+  contract_photo: string;
+
+  // ✅ Employment Information
+  @Column({ type: 'date' })
+  start_date: Date;
 
   @Column({ type: 'date', nullable: true })
-  start_date: string;
-
-  @Column({ type: 'date', nullable: true })
-  end_date: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  profession: string;
-
-  @Column({ type: 'varchar', length: 50, default: 'Active' })
-  employment_status: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  work_permit_type: string;
+  end_date: Date;
 
   @Column({ type: 'text', nullable: true })
   extra_info: string;
 
-  @Column({ type: 'numeric', precision: 10, scale: 2, nullable: true })
-  hourly_rate: number;
+  // ✅ Workdays
+  @Column({ default: false })
+  works_monday: boolean;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  virtual_terminal_id: string;
+  @Column({ default: false })
+  works_tuesday: boolean;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  work_location: string;
+  @Column({ default: false })
+  works_wednesday: boolean;
 
-  @Column({ type: 'text', nullable: true })
-  benefits_in_kind: string;
+  @Column({ default: false })
+  works_thursday: boolean;
 
-  // Work Schedule
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  work_formula: string;
+  @Column({ default: false })
+  works_friday: boolean;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  work_days: string;
+  @Column({ default: false })
+  works_saturday: boolean;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  period: string;
+  @Column({ default: false })
+  works_sunday: boolean;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  free_day: string;
+  // ✅ Shift & Work Formula
+  @Column({ type: 'varchar', length: 50 })
+  shift_type: 'Day' | 'Night' | 'Long';
 
-  // Payment Preferences
-  @Column({ type: 'boolean', default: false })
-  prefers_card_payment: boolean;
+  @Column({ type: 'varchar', length: 50 })
+  work_formula: '50/50' | 'Forfait';
 
-  @Column({ type: 'boolean', default: false })
-  prefers_cash_payment: boolean;
+  // ✅ Payment Preferences (Checkbox Booleans)
+  @Column({ default: false })
+  accepts_card_payment: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  prefers_check_payment: boolean;
+  @Column({ default: false })
+  accepts_check_payment: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  prefers_invoice: boolean;
+  @Column({ default: false })
+  accepts_cash_payment: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  prefers_heetch: boolean;
+  @Column({ default: false })
+  accepts_bolt_app: boolean;
 
-  // Timestamps
+  @Column({ default: false })
+  accepts_bolt_cash: boolean;
+
+  @Column({ default: false })
+  accepts_bolt_card: boolean;
+
+  @Column({ default: false })
+  accepts_heetch_app: boolean;
+
+  @Column({ default: false })
+  accepts_heetch_cash: boolean;
+
+  @Column({ default: false })
+  accepts_heetch_card: boolean;
+
+  @Column({ default: false })
+  accepts_uber_app: boolean;
+
+  @Column({ default: false })
+  accepts_uber_cash: boolean;
+
+  @Column({ default: false })
+  accepts_uber_card: boolean;
+
+  @Column({ default: false })
+  accepts_taxi_vert_cash: boolean;
+
+  @Column({ default: false })
+  accepts_taxi_vert_app: boolean;
+
+  @Column({ default: false })
+  accepts_taxi_vert_card: boolean;
+
+  // ✅ Timestamps
   @CreateDateColumn()
   created_at: Date;
 }
