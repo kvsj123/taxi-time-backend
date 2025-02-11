@@ -235,22 +235,58 @@ export class ChauffeursService {
   }
   
   
-  // ✅ Delete Chauffeur
-  async remove(id: string) {
-    const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
-    if (!chauffeur) {
-      throw new NotFoundException(`Chauffeur with ID ${id} not found`);
-    }
-    const supabase = this.supabaseService.getClient();
-
-    // ✅ Delete Supabase Auth User
-    const { error } = await supabase.auth.admin.deleteUser(chauffeur.auth_user_id);
-    if (error) {
-      throw new HttpException('Failed to delete chauffeur account', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    // ✅ Delete Chauffeur from Database
-    await this.chauffeurRepository.delete(id);
-    return { message: 'Chauffeur and linked Supabase Auth user deleted successfully' };
+// ✅ Delete Chauffeur
+async remove(id: string) {
+  const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
+  if (!chauffeur) {
+    throw new NotFoundException(`Chauffeur with ID ${id} not found`);
   }
+
+  const supabase = this.supabaseService.getClient();
+
+  // ✅ Delete Supabase Auth User
+  const { error } = await supabase.auth.admin.deleteUser(chauffeur.auth_user_id);
+  if (error) {
+    throw new HttpException('Failed to delete chauffeur account', HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  // ✅ Helper function to delete a file from Supabase
+  const deleteFile = async (fileUrl: string | null) => {
+    if (!fileUrl) return; // Skip if fileUrl is null or undefined
+
+    let filePath = fileUrl.split("supabase.co/storage/v1/object/public/chauffeurs/")[1];
+    if (!filePath) return;
+
+    // ✅ Fix: Decode spaces and special characters
+    filePath = decodeURIComponent(filePath);
+
+    console.log("🗑️ Attempting to delete file:", filePath);
+
+    const { error } = await supabase.storage.from("chauffeurs").remove([filePath]);
+
+    if (error) {
+      console.error("❌ Error deleting file:", error);
+    } else {
+      console.log("✅ File deleted successfully:", filePath);
+    }
+  };
+
+  // ✅ Collect all files to delete
+  const filesToRemove = [
+    chauffeur.id_card,
+    chauffeur.driver_license_photo,
+    chauffeur.bank_card_photo,
+    chauffeur.contract_photo,
+  ].filter((fileUrl): fileUrl is string => !!fileUrl); // ✅ Ensures only valid strings are passed
+
+  // ✅ Delete all files in parallel for efficiency
+  await Promise.all(filesToRemove.map(fileUrl => deleteFile(fileUrl)));
+
+  // ✅ Delete Chauffeur from Database
+  await this.chauffeurRepository.delete(id);
+
+  return { message: 'Chauffeur and linked Supabase Auth user deleted successfully' };
+}
+
+
 }
