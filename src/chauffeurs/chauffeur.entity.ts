@@ -44,16 +44,16 @@ export class Chauffeur {
 
   // ✅ File Uploads
   @Column({ type: 'text', nullable: true })
-  id_card: string;
+  id_card: string | null;
 
   @Column({ type: 'text', nullable: true })
-  driver_license_photo: string;
+  driver_license_photo: string | null;
 
   @Column({ type: 'text', nullable: true })
-  bank_card_photo: string;
+  bank_card_photo: string | null;
 
   @Column({ type: 'text', nullable: true })
-  contract_photo: string;
+  contract_photo: string | null;
 
   // ✅ Employment Information
   @Column({ type: 'date' })

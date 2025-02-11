@@ -141,15 +141,61 @@ export class ChauffeursService {
   }
 
   // ✅ Update Chauffeur
-  async update(id: string, updateChauffeurDto: UpdateChauffeurDto) {
+  async update(
+    id: string,
+    updateChauffeurDto: UpdateChauffeurDto,
+    idCardFile?: MulterFile,
+    driverLicenseFile?: MulterFile,
+    bankCardFile?: MulterFile,
+    contractFile?: MulterFile
+  ) {
+    console.log(`🚀 Updating chauffeur with ID: ${id}`);
+    console.log("📥 Received DTO:", updateChauffeurDto);
+    console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
+  
     const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
     if (!chauffeur) {
-      throw new HttpException('Chauffeur not found', HttpStatus.NOT_FOUND);
+      console.error(`❌ Chauffeur with ID ${id} not found`);
+      throw new HttpException(`Chauffeur not found`, HttpStatus.NOT_FOUND);
     }
-    await this.chauffeurRepository.update(id, updateChauffeurDto);
-    return this.chauffeurRepository.findOne({ where: { id } });
-  }
+  
+    // Upload new files if provided
+    const idCardUrl = idCardFile ? await this.uploadFile(idCardFile, "id_cards") : chauffeur.id_card;
+    const driverLicenseUrl = driverLicenseFile ? await this.uploadFile(driverLicenseFile, "licenses") : chauffeur.driver_license_photo;
+    const bankCardUrl = bankCardFile ? await this.uploadFile(bankCardFile, "bank_cards") : chauffeur.bank_card_photo;
+    const contractUrl = contractFile ? await this.uploadFile(contractFile, "contracts") : chauffeur.contract_photo;
+  
+    console.log("📤 Uploaded Files URLs:", { idCardUrl, driverLicenseUrl, bankCardUrl, contractUrl });
+  
+    // Convert empty values to null
+    const cleanedData: Partial<Chauffeur> = Object.fromEntries(
+      Object.entries(updateChauffeurDto).map(([key, value]) => {
+        if (value === "true") return [key, true];
+        if (value === "false") return [key, false];
+        return [key, value === "" ? null : value];
+      })
+    );
 
+   
+      
+  
+    console.log("🧹 Cleaned DTO:", cleanedData);
+  
+    // Update chauffeur entity
+    const updatedChauffeur = await this.chauffeurRepository.save({
+      ...chauffeur,
+      ...cleanedData,
+      id_card: idCardUrl,
+      driver_license_photo: driverLicenseUrl,
+      bank_card_photo: bankCardUrl,
+      contract_photo: contractUrl,
+    });
+  
+    console.log("✅ Chauffeur Successfully Updated:", updatedChauffeur);
+  
+    return updatedChauffeur;
+  }
+  
   // ✅ Delete Chauffeur
   async remove(id: string) {
     const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
