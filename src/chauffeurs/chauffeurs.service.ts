@@ -153,19 +153,49 @@ export class ChauffeursService {
     console.log("📥 Received DTO:", updateChauffeurDto);
     console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
   
+    const supabase = this.supabaseService.getClient();
     const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
+  
     if (!chauffeur) {
       console.error(`❌ Chauffeur with ID ${id} not found`);
       throw new HttpException(`Chauffeur not found`, HttpStatus.NOT_FOUND);
     }
+    
   
-    // Upload new files if provided
-    const idCardUrl = idCardFile ? await this.uploadFile(idCardFile, "id_cards") : chauffeur.id_card;
-    const driverLicenseUrl = driverLicenseFile ? await this.uploadFile(driverLicenseFile, "licenses") : chauffeur.driver_license_photo;
-    const bankCardUrl = bankCardFile ? await this.uploadFile(bankCardFile, "bank_cards") : chauffeur.bank_card_photo;
-    const contractUrl = contractFile ? await this.uploadFile(contractFile, "contracts") : chauffeur.contract_photo;
+    // ✅ Helper function to delete old file from Supabase
+    // ✅ Function to delete old file from Supabase
+    const deleteOldFile = async (fileUrl: string) => {
+      if (!fileUrl) return;
+    
+      let filePath = fileUrl.split("supabase.co/storage/v1/object/public/chauffeurs/")[1];
+      if (!filePath) return;
+    
+      // ✅ Fix: Decode spaces to match the exact stored filename
+      filePath = decodeURIComponent(filePath);
+    
+      console.log("🗑️ Attempting to delete file:", filePath);
+    
+      const supabase = this.supabaseService.getClient();
+      const { error } = await supabase.storage.from("chauffeurs").remove([filePath]);
+    
+      if (error) {
+        console.error("❌ Error deleting old file:", error);
+      } else {
+        console.log("✅ Old file deleted successfully:", filePath);
+      }
+    };
+    
+    
+
+    
   
-    console.log("📤 Uploaded Files URLs:", { idCardUrl, driverLicenseUrl, bankCardUrl, contractUrl });
+    // ✅ Upload new files (do NOT delete old ones yet)
+    const newIdCardUrl = idCardFile ? await this.uploadFile(idCardFile, "id_cards") : chauffeur.id_card;
+    const newDriverLicenseUrl = driverLicenseFile ? await this.uploadFile(driverLicenseFile, "licenses") : chauffeur.driver_license_photo;
+    const newBankCardUrl = bankCardFile ? await this.uploadFile(bankCardFile, "bank_cards") : chauffeur.bank_card_photo;
+    const newContractUrl = contractFile ? await this.uploadFile(contractFile, "contracts") : chauffeur.contract_photo;
+  
+    console.log("📤 New Uploaded Files URLs:", { newIdCardUrl, newDriverLicenseUrl, newBankCardUrl, newContractUrl });
   
     // Convert empty values to null
     const cleanedData: Partial<Chauffeur> = Object.fromEntries(
@@ -175,26 +205,35 @@ export class ChauffeursService {
         return [key, value === "" ? null : value];
       })
     );
-
-   
-      
   
     console.log("🧹 Cleaned DTO:", cleanedData);
   
-    // Update chauffeur entity
-    const updatedChauffeur = await this.chauffeurRepository.save({
-      ...chauffeur,
-      ...cleanedData,
-      id_card: idCardUrl,
-      driver_license_photo: driverLicenseUrl,
-      bank_card_photo: bankCardUrl,
-      contract_photo: contractUrl,
-    });
+    // ✅ Try to update chauffeur entity
+    try {
+      const updatedChauffeur = await this.chauffeurRepository.save({
+        ...chauffeur,
+        ...cleanedData,
+        id_card: newIdCardUrl,
+        driver_license_photo: newDriverLicenseUrl,
+        bank_card_photo: newBankCardUrl,
+        contract_photo: newContractUrl,
+      });
   
-    console.log("✅ Chauffeur Successfully Updated:", updatedChauffeur);
+      console.log("✅ Chauffeur Successfully Updated:", updatedChauffeur);
   
-    return updatedChauffeur;
+      // ✅ Now we can delete the old files **only if they were replaced**
+      if (idCardFile && chauffeur.id_card) await deleteOldFile(chauffeur.id_card);
+      if (driverLicenseFile && chauffeur.driver_license_photo) await deleteOldFile(chauffeur.driver_license_photo);
+      if (bankCardFile && chauffeur.bank_card_photo) await deleteOldFile(chauffeur.bank_card_photo);
+      if (contractFile && chauffeur.contract_photo) await deleteOldFile(chauffeur.contract_photo);
+  
+      return updatedChauffeur;
+    } catch (error) {
+      console.error("❌ Error updating chauffeur:", error);
+      throw new HttpException("Failed to update chauffeur", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
+  
   
   // ✅ Delete Chauffeur
   async remove(id: string) {
