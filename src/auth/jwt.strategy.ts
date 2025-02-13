@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -14,6 +14,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email };
+    console.log("🔍 Validating JWT Token:", payload);
+
+    if (!payload || !payload.sub || !payload.role) {
+      throw new UnauthorizedException('Invalid token: Role not found in metadata');
+    }
+
+    return { userId: payload.sub, email: payload.email, role: payload.role };
   }
 }

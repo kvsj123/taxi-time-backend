@@ -1,12 +1,15 @@
-import { Controller, Post, Body, Get, Param, Put, Delete, UseInterceptors, UploadedFile, UploadedFiles, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Delete, UseInterceptors, UploadedFile, UploadedFiles, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { ChauffeursService } from './chauffeurs.service';
 import { CreateChauffeurDto } from './create-chauffeur.dto';
 import { UpdateChauffeurDto } from './update-chauffeur.dto';
 import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { File as MulterFile } from 'multer';
 import { validate } from 'class-validator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
+import { AdminGuard } from 'src/admin/admin.guard';
 
 @Controller('chauffeurs')
+@UseGuards(JwtAuthGuard, AdminGuard) 
 export class ChauffeursController {
   constructor(private readonly chauffeursService: ChauffeursService) {}
 
