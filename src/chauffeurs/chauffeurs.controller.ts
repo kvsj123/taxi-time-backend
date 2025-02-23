@@ -21,6 +21,7 @@ export class ChauffeursController {
       { name: 'driver_license_photo', maxCount: 1 },
       { name: 'bank_card_photo', maxCount: 1 },
       { name: 'contract_photo', maxCount: 1 },
+      { name: 'photo_chauffeur', maxCount: 1 },
     ])
   )
   async create(
@@ -31,6 +32,7 @@ export class ChauffeursController {
       driver_license_photo?: MulterFile[];
       bank_card_photo?: MulterFile[];
       contract_photo?: MulterFile[];
+      photo_chauffeur?: MulterFile[];
     }
   ) {
     console.log("📥 Received DTO:", createChauffeurDto);
@@ -41,15 +43,17 @@ export class ChauffeursController {
     const driverLicenseFile = files.driver_license_photo?.[0];
     const bankCardFile = files.bank_card_photo?.[0];
     const contractFile = files.contract_photo?.[0];
+    const photoChauffeurFile = files.photo_chauffeur?.[0];
 
-    console.log("📂 Extracted Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
+    console.log("📂 Extracted Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile, photoChauffeurFile });
 
     return this.chauffeursService.create(
       createChauffeurDto,
       idCardFile,
       driverLicenseFile,
       bankCardFile,
-      contractFile
+      contractFile,
+      photoChauffeurFile
     );
   }
 
@@ -72,6 +76,7 @@ export class ChauffeursController {
     { name: "driver_license_photo", maxCount: 1 },
     { name: "bank_card_photo", maxCount: 1 },
     { name: "contract_photo", maxCount: 1 },
+    { name: "photo_chauffeur", maxCount: 1 },
   ])
 )
 async update(
@@ -83,6 +88,7 @@ async update(
     driver_license_photo?: MulterFile[];
     bank_card_photo?: MulterFile[];
     contract_photo?: MulterFile[];
+    photo_chauffeur?: MulterFile[];
   }
 ) {
   console.log(`🚀 Updating chauffeur with ID: ${id}`);
@@ -94,16 +100,22 @@ async update(
   const driverLicenseFile = files.driver_license_photo?.[0];
   const bankCardFile = files.bank_card_photo?.[0];
   const contractFile = files.contract_photo?.[0];
+  const photoChauffeurFile = files.photo_chauffeur?.[0];
 
-  console.log("📂 Extracted Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
+  console.log("📂 Extracted Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile, photoChauffeurFile });
 
+  if (updateChauffeurDto.password) {
+    console.log("🔑 Request contains a password update.");
+  }
+  
   return this.chauffeursService.update(
     id,
     updateChauffeurDto,
     idCardFile,
     driverLicenseFile,
     bankCardFile,
-    contractFile
+    contractFile,
+    photoChauffeurFile
   );
 }
 

@@ -185,4 +185,15 @@ export class CreateChauffeurDto {
   @IsBoolean()
   @IsOptional()
   accepts_taxi_vert_card?: boolean;
+
+  @IsString()
+  @IsOptional()
+  photo_chauffeur?: string; // ✅ New Chauffeur photo field
+
+  @IsBoolean()
+  @IsOptional()
+  extra?: boolean; // ✅ "Flex Worker" checkbox
+
+  @IsString()
+  password: string; // ✅ Password is required when creating a chauffeur
 }

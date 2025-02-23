@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateAdminDto {
   @IsUUID()
@@ -17,4 +17,8 @@ export class CreateAdminDto {
 
   @IsEmail()
   email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password: string; // ✅ Password is required when creating a chauffeur
 }

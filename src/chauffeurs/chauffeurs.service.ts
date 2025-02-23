@@ -51,10 +51,11 @@ export class ChauffeursService {
     idCardFile?: MulterFile,
     driverLicenseFile?: MulterFile,
     bankCardFile?: MulterFile,
-    contractFile?: MulterFile
+    contractFile?: MulterFile,
+    photoChauffeurFile?: MulterFile
   ) {
     console.log("📥 Received DTO:", createChauffeurDto);
-    console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
+    console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile, photoChauffeurFile });
   
     const supabase = this.supabaseService.getClient();
     const email = createChauffeurDto.email.trim().toLowerCase();
@@ -69,7 +70,7 @@ export class ChauffeursService {
     // Create chauffeur account in Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
-      password: 'Chauffeur123',
+      password: createChauffeurDto.password ,
       options: { emailRedirectTo: '', data: { role: 'chauffeur' } },
     });
   
@@ -86,6 +87,7 @@ export class ChauffeursService {
       const driverLicenseUrl = driverLicenseFile ? await this.uploadFile(driverLicenseFile, 'licenses') : null;
       const bankCardUrl = bankCardFile ? await this.uploadFile(bankCardFile, 'bank_cards') : null;
       const contractUrl = contractFile ? await this.uploadFile(contractFile, 'contracts') : null;
+      const photoChauffeurUrl = photoChauffeurFile ? await this.uploadFile(photoChauffeurFile, 'photo_chauffeur') : null;
   
       console.log("📤 Uploaded Files URLs:", { idCardUrl, driverLicenseUrl, bankCardUrl, contractUrl });
   
@@ -109,6 +111,7 @@ export class ChauffeursService {
         driver_license_photo: driverLicenseUrl,
         bank_card_photo: bankCardUrl,
         contract_photo: contractUrl,
+        photo_chauffeur: photoChauffeurUrl,
       } as Chauffeur); // Explicitly cast to Chauffeur
   
       console.log("📝 Attempting to Save Chauffeur:", JSON.stringify(newChauffeur, null, 2));
@@ -147,11 +150,12 @@ export class ChauffeursService {
     idCardFile?: MulterFile,
     driverLicenseFile?: MulterFile,
     bankCardFile?: MulterFile,
-    contractFile?: MulterFile
+    contractFile?: MulterFile,
+    photoChauffeurFile?: MulterFile
   ) {
     console.log(`🚀 Updating chauffeur with ID: ${id}`);
     console.log("📥 Received DTO:", updateChauffeurDto);
-    console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile });
+    console.log("📂 Received Files:", { idCardFile, driverLicenseFile, bankCardFile, contractFile, photoChauffeurFile });
   
     const supabase = this.supabaseService.getClient();
     const chauffeur = await this.chauffeurRepository.findOne({ where: { id } });
@@ -185,7 +189,18 @@ export class ChauffeursService {
       }
     };
     
-    
+    // ✅ Handle password update
+  if (updateChauffeurDto.password) {
+    console.log("🔑 Updating password in Supabase Auth...");
+    const { error: passwordError } = await supabase.auth.admin.updateUserById(chauffeur.auth_user_id, {
+      password: updateChauffeurDto.password,
+    });
+
+    if (passwordError) {
+      console.error("❌ Failed to update password in Supabase:", passwordError);
+      throw new HttpException("Failed to update password", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
     
   
@@ -194,8 +209,9 @@ export class ChauffeursService {
     const newDriverLicenseUrl = driverLicenseFile ? await this.uploadFile(driverLicenseFile, "licenses") : chauffeur.driver_license_photo;
     const newBankCardUrl = bankCardFile ? await this.uploadFile(bankCardFile, "bank_cards") : chauffeur.bank_card_photo;
     const newContractUrl = contractFile ? await this.uploadFile(contractFile, "contracts") : chauffeur.contract_photo;
+    const newPhotoChauffeurUrl = photoChauffeurFile ? await this.uploadFile(photoChauffeurFile, "photo_chauffeur") : chauffeur.photo_chauffeur;
   
-    console.log("📤 New Uploaded Files URLs:", { newIdCardUrl, newDriverLicenseUrl, newBankCardUrl, newContractUrl });
+    console.log("📤 New Uploaded Files URLs:", { newIdCardUrl, newDriverLicenseUrl, newBankCardUrl, newContractUrl, newPhotoChauffeurUrl });
   
     // Convert empty values to null
     const cleanedData: Partial<Chauffeur> = Object.fromEntries(
@@ -217,6 +233,7 @@ export class ChauffeursService {
         driver_license_photo: newDriverLicenseUrl,
         bank_card_photo: newBankCardUrl,
         contract_photo: newContractUrl,
+        photo_chauffeur: newPhotoChauffeurUrl,
       });
   
       console.log("✅ Chauffeur Successfully Updated:", updatedChauffeur);
@@ -226,6 +243,7 @@ export class ChauffeursService {
       if (driverLicenseFile && chauffeur.driver_license_photo) await deleteOldFile(chauffeur.driver_license_photo);
       if (bankCardFile && chauffeur.bank_card_photo) await deleteOldFile(chauffeur.bank_card_photo);
       if (contractFile && chauffeur.contract_photo) await deleteOldFile(chauffeur.contract_photo);
+      if (photoChauffeurFile && chauffeur.photo_chauffeur) await deleteOldFile(chauffeur.photo_chauffeur);
   
       return updatedChauffeur;
     } catch (error) {

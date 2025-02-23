@@ -55,6 +55,9 @@ export class Chauffeur {
   @Column({ type: 'text', nullable: true })
   contract_photo: string | null;
 
+  @Column({ type: 'text', nullable: true })
+  photo_chauffeur: string | null;
+
   // ✅ Employment Information
   @Column({ type: 'date' })
   start_date: Date;
@@ -64,6 +67,9 @@ export class Chauffeur {
 
   @Column({ type: 'text', nullable: true })
   extra_info: string;
+
+  @Column({ type: 'boolean', default: false })
+  extra: boolean;  // ✅ New column for "Flex Worker"
 
   // ✅ Workdays
   @Column({ default: false })

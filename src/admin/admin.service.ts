@@ -27,9 +27,10 @@ export class AdminService {
     // ✅ Create User in Supabase Auth
     const { data, error } = await this.supabaseService.getClient().auth.signUp({
       email,
-      password: 'Admin123', // Default password (must be changed later)
+      password: createAdminDto.password, // Default password (must be changed later)
       options: { emailRedirectTo: '', data: { role: 'admin' } }, // Set role in metadata
     });
+    
 
     if (error || !data.user) {
       throw new ConflictException('Failed to create admin in Supabase');
@@ -42,6 +43,7 @@ export class AdminService {
       first_name,
       last_name,
       email,
+
     });
 
     return await this.adminRepository.save(admin);
@@ -56,6 +58,15 @@ export class AdminService {
   async findOne(id: string) {
     const admin = await this.adminRepository.findOne({ where: { id } });
     if (!admin) throw new NotFoundException(`Admin not found`);
+    return admin;
+  }
+
+    // ✅ Find Admin by Supabase Auth User ID
+  async findByAuthUserId(authUserId: string) {
+    const admin = await this.adminRepository.findOne({ where: { auth_user_id: authUserId } });
+    if (!admin) {
+      throw new NotFoundException(`Admin with auth_user_id ${authUserId} not found`);
+    }
     return admin;
   }
 

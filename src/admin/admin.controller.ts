@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, NotFoundException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -24,6 +24,12 @@ export class AdminController {
   async findOne(@Param('id') id: string) {
     return this.adminService.findOne(id);
   }
+
+  @Get('/auth/:authUserId')
+  async findByAuthUserId(@Param('authUserId') authUserId: string) {
+    return this.adminService.findByAuthUserId(authUserId);
+  }
+
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
