@@ -6,6 +6,7 @@ import { SupabaseService } from './supabase/supabase.service';
 import { ChauffeursModule } from './chauffeurs/chauffeurs.module';
 import { OCRModule } from "./ocr/ocr.module";
 import { AdminModule } from './admin/admin.module';
+import { TaxiCompaniesModule } from './taxi_company/taxi_companies.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,7 +24,8 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     ChauffeursModule,
     OCRModule,
-    AdminModule
+    AdminModule,
+    TaxiCompaniesModule
   ],
   providers: [SupabaseService],
 })
